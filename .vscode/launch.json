@@ -1,0 +1,43 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "load_more_and_infinite_scroll",
+      "request": "launch",
+      "type": "dart",
+      "toolArgs": [
+        "--dart-define",
+        "TMDB_API_KEY=b2afc9f362bc0a67acd23fcfe52ca292",
+        "--dart-define",
+        "MOVIE_POSTER_URL_PREFIX=https://image.tmdb.org/t/p/w500"
+      ]
+    },
+    {
+      "name": "load_more_and_infinite_scroll (profile mode)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "profile",
+      "toolArgs": [
+        "--dart-define",
+        "TMDB_API_KEY=b2afc9f362bc0a67acd23fcfe52ca292",
+        "--dart-define",
+        "MOVIE_POSTER_URL_PREFIX=https://image.tmdb.org/t/p/w500"
+      ]
+    },
+    {
+      "name": "load_more_and_infinite_scroll (release mode)",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "release",
+      "toolArgs": [
+        "--dart-define",
+        "TMDB_API_KEY=b2afc9f362bc0a67acd23fcfe52ca292",
+        "--dart-define",
+        "MOVIE_POSTER_URL_PREFIX=https://image.tmdb.org/t/p/w500"
+      ]
+    }
+  ]
+}
