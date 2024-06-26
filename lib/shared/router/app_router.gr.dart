@@ -21,6 +21,12 @@ abstract class _$AppRouter extends RootStackRouter {
         child: const HomePage(),
       );
     },
+    MainWrapperRoute.name: (routeData) {
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: WrappedRoute(child: const MainWrapperPage()),
+      );
+    },
     MoviesRoute.name: (routeData) {
       return AutoRoutePage<dynamic>(
         routeData: routeData,
@@ -40,6 +46,20 @@ class HomeRoute extends PageRouteInfo<void> {
         );
 
   static const String name = 'HomeRoute';
+
+  static const PageInfo<void> page = PageInfo<void>(name);
+}
+
+/// generated route for
+/// [MainWrapperPage]
+class MainWrapperRoute extends PageRouteInfo<void> {
+  const MainWrapperRoute({List<PageRouteInfo>? children})
+      : super(
+          MainWrapperRoute.name,
+          initialChildren: children,
+        );
+
+  static const String name = 'MainWrapperRoute';
 
   static const PageInfo<void> page = PageInfo<void>(name);
 }

@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:load_more_and_infinite_scroll/shared/router/app_router.dart';
+
+import '../../../shared/router/app_router.dart';
 
 @RoutePage()
 class HomePage extends StatelessWidget {
