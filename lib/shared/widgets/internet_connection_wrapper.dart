@@ -18,6 +18,7 @@ class InternetConnectionWrapper extends StatelessWidget {
         ),
         child: Builder(builder: (context) {
           return BlocListener<InternetConnectionWrapperCubit, bool?>(
+            listenWhen: (previous, current) => previous != null,
             listener: (context, state) {
               if (state != null) {
                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
