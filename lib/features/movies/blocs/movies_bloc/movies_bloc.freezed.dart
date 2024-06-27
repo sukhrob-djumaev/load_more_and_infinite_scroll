@@ -278,6 +278,10 @@ abstract class _LoadMoreRequested implements MoviesEvent {
   const factory _LoadMoreRequested() = _$LoadMoreRequestedImpl;
 }
 
+MoviesState _$MoviesStateFromJson(Map<String, dynamic> json) {
+  return _MoviesState.fromJson(json);
+}
+
 /// @nodoc
 mixin _$MoviesState {
   StateStatus get status => throw _privateConstructorUsedError;
@@ -286,6 +290,7 @@ mixin _$MoviesState {
   int get page => throw _privateConstructorUsedError;
   int get totalPages => throw _privateConstructorUsedError;
 
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
   $MoviesStateCopyWith<MoviesState> get copyWith =>
       throw _privateConstructorUsedError;
@@ -421,7 +426,7 @@ class __$$MoviesStateImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-
+@JsonSerializable()
 class _$MoviesStateImpl extends _MoviesState {
   const _$MoviesStateImpl(
       {this.status = const StateStatus(),
@@ -432,6 +437,9 @@ class _$MoviesStateImpl extends _MoviesState {
       : _movies = movies,
         _genres = genres,
         super._();
+
+  factory _$MoviesStateImpl.fromJson(Map<String, dynamic> json) =>
+      _$$MoviesStateImplFromJson(json);
 
   @override
   @JsonKey()
@@ -479,6 +487,7 @@ class _$MoviesStateImpl extends _MoviesState {
                 other.totalPages == totalPages));
   }
 
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -493,6 +502,13 @@ class _$MoviesStateImpl extends _MoviesState {
   @pragma('vm:prefer-inline')
   _$$MoviesStateImplCopyWith<_$MoviesStateImpl> get copyWith =>
       __$$MoviesStateImplCopyWithImpl<_$MoviesStateImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$MoviesStateImplToJson(
+      this,
+    );
+  }
 }
 
 abstract class _MoviesState extends MoviesState {
@@ -503,6 +519,9 @@ abstract class _MoviesState extends MoviesState {
       final int page,
       final int totalPages}) = _$MoviesStateImpl;
   const _MoviesState._() : super._();
+
+  factory _MoviesState.fromJson(Map<String, dynamic> json) =
+      _$MoviesStateImpl.fromJson;
 
   @override
   StateStatus get status;

@@ -12,4 +12,6 @@ class MoviesState with _$MoviesState {
   }) = _MoviesState;
 
   bool get hasReachedMax => page >= totalPages;
+
+  factory MoviesState.fromJson(Map<String, dynamic> json) => _$MoviesStateFromJson(json);
 }

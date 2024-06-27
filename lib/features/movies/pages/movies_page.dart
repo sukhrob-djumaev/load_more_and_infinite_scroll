@@ -15,7 +15,11 @@ class MoviesPage extends StatelessWidget implements AutoRouteWrapper {
   @override
   Widget wrappedRoute(BuildContext context) {
     return BlocProvider(
-      create: (context) => MoviesBloc(repository: MoviesRepository())..add(const MoviesEvent.started()),
+      create: (context) => MoviesBloc(
+          repository: MoviesRepository(
+        connectionService: context.read(),
+      ))
+        ..add(const MoviesEvent.started()),
       child: this,
     );
   }

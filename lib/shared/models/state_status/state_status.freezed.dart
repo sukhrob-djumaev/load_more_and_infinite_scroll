@@ -14,6 +14,23 @@ T _$identity<T>(T value) => value;
 final _privateConstructorUsedError = UnsupportedError(
     'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
+StateStatus _$StateStatusFromJson(Map<String, dynamic> json) {
+  switch (json['runtimeType']) {
+    case 'default':
+      return PureStatus.fromJson(json);
+    case 'loading':
+      return LoadingStatus.fromJson(json);
+    case 'success':
+      return SuccessStatus.fromJson(json);
+    case 'error':
+      return ErrorStatus.fromJson(json);
+
+    default:
+      throw CheckedFromJsonException(json, 'runtimeType', 'StateStatus',
+          'Invalid union type "${json['runtimeType']}"!');
+  }
+}
+
 /// @nodoc
 mixin _$StateStatus {
   @optionalTypeArgs
@@ -66,6 +83,7 @@ mixin _$StateStatus {
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
@@ -103,9 +121,15 @@ class __$$PureStatusImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-
+@JsonSerializable()
 class _$PureStatusImpl implements PureStatus {
-  const _$PureStatusImpl();
+  const _$PureStatusImpl({final String? $type}) : $type = $type ?? 'default';
+
+  factory _$PureStatusImpl.fromJson(Map<String, dynamic> json) =>
+      _$$PureStatusImplFromJson(json);
+
+  @JsonKey(name: 'runtimeType')
+  final String $type;
 
   @override
   String toString() {
@@ -118,6 +142,7 @@ class _$PureStatusImpl implements PureStatus {
         (other.runtimeType == runtimeType && other is _$PureStatusImpl);
   }
 
+  @JsonKey(ignore: true)
   @override
   int get hashCode => runtimeType.hashCode;
 
@@ -194,10 +219,20 @@ class _$PureStatusImpl implements PureStatus {
     }
     return orElse();
   }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$PureStatusImplToJson(
+      this,
+    );
+  }
 }
 
 abstract class PureStatus implements StateStatus {
   const factory PureStatus() = _$PureStatusImpl;
+
+  factory PureStatus.fromJson(Map<String, dynamic> json) =
+      _$PureStatusImpl.fromJson;
 }
 
 /// @nodoc
@@ -217,9 +252,15 @@ class __$$LoadingStatusImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-
+@JsonSerializable()
 class _$LoadingStatusImpl implements LoadingStatus {
-  const _$LoadingStatusImpl();
+  const _$LoadingStatusImpl({final String? $type}) : $type = $type ?? 'loading';
+
+  factory _$LoadingStatusImpl.fromJson(Map<String, dynamic> json) =>
+      _$$LoadingStatusImplFromJson(json);
+
+  @JsonKey(name: 'runtimeType')
+  final String $type;
 
   @override
   String toString() {
@@ -232,6 +273,7 @@ class _$LoadingStatusImpl implements LoadingStatus {
         (other.runtimeType == runtimeType && other is _$LoadingStatusImpl);
   }
 
+  @JsonKey(ignore: true)
   @override
   int get hashCode => runtimeType.hashCode;
 
@@ -308,10 +350,20 @@ class _$LoadingStatusImpl implements LoadingStatus {
     }
     return orElse();
   }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$LoadingStatusImplToJson(
+      this,
+    );
+  }
 }
 
 abstract class LoadingStatus implements StateStatus {
   const factory LoadingStatus() = _$LoadingStatusImpl;
+
+  factory LoadingStatus.fromJson(Map<String, dynamic> json) =
+      _$LoadingStatusImpl.fromJson;
 }
 
 /// @nodoc
@@ -346,12 +398,19 @@ class __$$SuccessStatusImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-
+@JsonSerializable()
 class _$SuccessStatusImpl implements SuccessStatus {
-  const _$SuccessStatusImpl([this.data]);
+  const _$SuccessStatusImpl([this.data, final String? $type])
+      : $type = $type ?? 'success';
+
+  factory _$SuccessStatusImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SuccessStatusImplFromJson(json);
 
   @override
   final dynamic data;
+
+  @JsonKey(name: 'runtimeType')
+  final String $type;
 
   @override
   String toString() {
@@ -366,6 +425,7 @@ class _$SuccessStatusImpl implements SuccessStatus {
             const DeepCollectionEquality().equals(other.data, data));
   }
 
+  @JsonKey(ignore: true)
   @override
   int get hashCode =>
       Object.hash(runtimeType, const DeepCollectionEquality().hash(data));
@@ -449,10 +509,20 @@ class _$SuccessStatusImpl implements SuccessStatus {
     }
     return orElse();
   }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$SuccessStatusImplToJson(
+      this,
+    );
+  }
 }
 
 abstract class SuccessStatus implements StateStatus {
   const factory SuccessStatus([final dynamic data]) = _$SuccessStatusImpl;
+
+  factory SuccessStatus.fromJson(Map<String, dynamic> json) =
+      _$SuccessStatusImpl.fromJson;
 
   dynamic get data;
   @JsonKey(ignore: true)
@@ -492,12 +562,19 @@ class __$$ErrorStatusImplCopyWithImpl<$Res>
 }
 
 /// @nodoc
-
+@JsonSerializable()
 class _$ErrorStatusImpl implements ErrorStatus {
-  const _$ErrorStatusImpl([this.message]);
+  const _$ErrorStatusImpl([this.message, final String? $type])
+      : $type = $type ?? 'error';
+
+  factory _$ErrorStatusImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ErrorStatusImplFromJson(json);
 
   @override
   final String? message;
+
+  @JsonKey(name: 'runtimeType')
+  final String $type;
 
   @override
   String toString() {
@@ -512,6 +589,7 @@ class _$ErrorStatusImpl implements ErrorStatus {
             (identical(other.message, message) || other.message == message));
   }
 
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, message);
 
@@ -594,10 +672,20 @@ class _$ErrorStatusImpl implements ErrorStatus {
     }
     return orElse();
   }
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$ErrorStatusImplToJson(
+      this,
+    );
+  }
 }
 
 abstract class ErrorStatus implements StateStatus {
   const factory ErrorStatus([final String? message]) = _$ErrorStatusImpl;
+
+  factory ErrorStatus.fromJson(Map<String, dynamic> json) =
+      _$ErrorStatusImpl.fromJson;
 
   String? get message;
   @JsonKey(ignore: true)

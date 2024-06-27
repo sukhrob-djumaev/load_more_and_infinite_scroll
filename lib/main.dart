@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:load_more_and_infinite_scroll/gen/assets.gen.dart';
 import 'package:load_more_and_infinite_scroll/gen/fonts.gen.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'shared/router/app_router.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  HydratedBloc.storage = await HydratedStorage.build(
+    storageDirectory: await getApplicationDocumentsDirectory(),
+  );
+  HydratedBloc.storage.clear();
   runApp(MainApp());
 }
 

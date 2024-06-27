@@ -1,5 +1,5 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:load_more_and_infinite_scroll/features/movies/repositories/movies_repository.dart';
 import 'package:load_more_and_infinite_scroll/shared/models/state_status/state_status.dart';
 
@@ -10,8 +10,9 @@ import '../../models/movie.dart';
 part 'movies_event.dart';
 part 'movies_state.dart';
 part 'movies_bloc.freezed.dart';
+part 'movies_bloc.g.dart';
 
-class MoviesBloc extends Bloc<MoviesEvent, MoviesState> {
+class MoviesBloc extends HydratedBloc<MoviesEvent, MoviesState> {
   final IMoviesRepository _repository;
 
   MoviesBloc({
@@ -30,14 +31,16 @@ class MoviesBloc extends Bloc<MoviesEvent, MoviesState> {
     try {
       final genres = await _repository.fetchGenres();
       final moviesList = await _repository.fetchMovies();
-      emit(
-        state.copyWith(
-          genres: genres,
-          movies: moviesList.results,
-          totalPages: moviesList.totalPages,
-          page: moviesList.page,
-        ),
-      );
+      if (genres != null && moviesList != null) {
+        emit(
+          state.copyWith(
+            genres: genres,
+            movies: moviesList.results,
+            totalPages: moviesList.totalPages,
+            page: moviesList.page,
+          ),
+        );
+      }
     } catch (e) {
       emit(state.copyWith(status: const ErrorStatus('Something went wrong')));
     } finally {
@@ -51,17 +54,25 @@ class MoviesBloc extends Bloc<MoviesEvent, MoviesState> {
     emit(state.copyWith(status: const LoadingStatus()));
     try {
       final moviesList = await _repository.fetchMovies(state.page + 1);
-      emit(
-        state.copyWith(
-          movies: List.of(state.movies)..addAll(moviesList.results),
-          totalPages: moviesList.totalPages,
-          page: moviesList.page,
-        ),
-      );
+      if (moviesList != null) {
+        emit(
+          state.copyWith(
+            movies: List.of(state.movies)..addAll(moviesList.results),
+            totalPages: moviesList.totalPages,
+            page: moviesList.page,
+          ),
+        );
+      }
     } catch (e) {
       emit(state.copyWith(status: const ErrorStatus('Something went wrong')));
     } finally {
       emit(state.copyWith(status: const StateStatus()));
     }
   }
+
+  @override
+  MoviesState? fromJson(Map<String, dynamic> json) => MoviesState.fromJson(json);
+
+  @override
+  Map<String, dynamic>? toJson(MoviesState state) => state.toJson();
 }

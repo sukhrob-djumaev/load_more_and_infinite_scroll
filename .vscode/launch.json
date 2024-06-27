@@ -10,7 +10,7 @@
       "type": "dart",
       "toolArgs": [
         "--dart-define",
-        "TMDB_API_KEY=b2afc9f362bc0a67acd23fcfe52ca292",
+        "TMDB_API_KEY=7b0de311590c7705f4ebdec566c949ce",
         "--dart-define",
         "MOVIE_POSTER_URL_PREFIX=https://image.tmdb.org/t/p/w500"
       ]
@@ -22,7 +22,7 @@
       "flutterMode": "profile",
       "toolArgs": [
         "--dart-define",
-        "TMDB_API_KEY=b2afc9f362bc0a67acd23fcfe52ca292",
+        "TMDB_API_KEY=7b0de311590c7705f4ebdec566c949ce",
         "--dart-define",
         "MOVIE_POSTER_URL_PREFIX=https://image.tmdb.org/t/p/w500"
       ]
@@ -34,7 +34,7 @@
       "flutterMode": "release",
       "toolArgs": [
         "--dart-define",
-        "TMDB_API_KEY=b2afc9f362bc0a67acd23fcfe52ca292",
+        "TMDB_API_KEY=7b0de311590c7705f4ebdec566c949ce",
         "--dart-define",
         "MOVIE_POSTER_URL_PREFIX=https://image.tmdb.org/t/p/w500"
       ]
