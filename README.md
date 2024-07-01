@@ -6,7 +6,7 @@ Handling large data sets efficiently is crucial for maintaining user engagement 
 
 [https://youtube.com/shorts/oJNcsHARnDU](https://youtube.com/shorts/oJNcsHARnDU)
 
-For simple and quick implementation of caching, we use the hydrated_bloc package. This package extends the functionality of the Bloc library by adding automatic state persistence. By overriding the fromJson and toJson methods, we enable the Bloc to save and restore its state, providing a straightforward way to implement caching for small to medium-sized projects.
+For simple and quick implementation of caching, we use the `hydrated_bloc` package. This package extends the functionality of the Bloc library by adding automatic state persistence. By overriding the fromJson and toJson methods, we enable the Bloc to save and restore its state, providing a straightforward way to implement caching for small to medium-sized projects.
 
 ```dart
 class MoviesBloc extends HydratedBloc<MoviesEvent, MoviesState> {
@@ -114,7 +114,7 @@ class MoviesRepository implements IMoviesRepository {
   }
 }
 ```
-A custom Dio interceptor is used to intercept network requests and check for internet connectivity. If no internet connection is detected, a custom NoInternetException is thrown. The repository catches this exception and returns cached data, ensuring the app continues to function smoothly without an internet connection.
+A custom Dio interceptor is used to intercept network requests and check for internet connectivity. If no internet connection is detected, a custom `NoInternetException` is thrown. The repository catches this exception and returns cached data, ensuring the app continues to function smoothly without an internet connection.
 ```dart
 class DioConnectionInterceptor extends Interceptor {
   final IConnectionService _connectionService;
@@ -136,4 +136,4 @@ class DioConnectionInterceptor extends Interceptor {
 class NoInternetException implements Exception {}
 ```
 
-Implementing caching with hydrated_bloc in Flutter applications provides a straightforward approach to persisting and restoring Bloc state. By leveraging automatic state persistence, developers can enhance app performance and user experience by ensuring consistent state management across app sessions and device restarts. This approach not only simplifies caching implementation but also improves app reliability in handling both online and offline scenarios.
+Implementing caching with `hydrated_bloc` in Flutter applications provides a straightforward approach to persisting and restoring Bloc state. By leveraging automatic state persistence, developers can enhance app performance and user experience by ensuring consistent state management across app sessions and device restarts. This approach not only simplifies caching implementation but also improves app reliability in handling both online and offline scenarios.
