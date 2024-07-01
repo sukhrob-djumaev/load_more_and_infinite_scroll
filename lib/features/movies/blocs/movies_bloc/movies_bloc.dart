@@ -12,7 +12,7 @@ part 'movies_state.dart';
 part 'movies_bloc.freezed.dart';
 part 'movies_bloc.g.dart';
 
-class MoviesBloc extends HydratedBloc<MoviesEvent, MoviesState> {
+class MoviesBloc extends Bloc<MoviesEvent, MoviesState> {
   final IMoviesRepository _repository;
 
   MoviesBloc({
@@ -69,10 +69,4 @@ class MoviesBloc extends HydratedBloc<MoviesEvent, MoviesState> {
       emit(state.copyWith(status: const StateStatus()));
     }
   }
-
-  @override
-  MoviesState? fromJson(Map<String, dynamic> json) => MoviesState.fromJson(json);
-
-  @override
-  Map<String, dynamic>? toJson(MoviesState state) => state.toJson();
 }
