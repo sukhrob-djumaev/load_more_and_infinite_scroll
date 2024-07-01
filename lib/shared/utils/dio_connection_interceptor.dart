@@ -13,7 +13,7 @@ class DioConnectionInterceptor extends Interceptor {
   void onError(DioException err, ErrorInterceptorHandler handler) async {
     final hasInternet = await _connectionService.hasInternet();
     if (!hasInternet) {
-      throw NoInternetException();
+      return super.onError(err.copyWith(error: NoInternetException()), handler);
     }
     super.onError(err, handler);
   }

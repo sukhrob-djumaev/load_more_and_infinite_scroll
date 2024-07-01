@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:load_more_and_infinite_scroll/features/movies/blocs/movies_bloc/movies_bloc.dart';
+import 'package:load_more_and_infinite_scroll/features/movies/daos/movies_dao.dart';
 import 'package:load_more_and_infinite_scroll/features/movies/repositories/movies_repository.dart';
 import 'package:load_more_and_infinite_scroll/shared/models/state_status/state_status.dart';
 
@@ -16,10 +17,13 @@ class MoviesPage extends StatelessWidget implements AutoRouteWrapper {
   Widget wrappedRoute(BuildContext context) {
     return BlocProvider(
       create: (context) => MoviesBloc(
-          repository: MoviesRepository(
-        connectionService: context.read(),
-      ))
-        ..add(const MoviesEvent.started()),
+        repository: MoviesRepository(
+          connectionService: context.read(),
+          moviesDao: MoviesDao(
+            context.read(),
+          ),
+        ),
+      )..add(const MoviesEvent.started()),
       child: this,
     );
   }

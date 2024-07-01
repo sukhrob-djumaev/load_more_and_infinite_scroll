@@ -48,7 +48,7 @@ class MovieItem extends StatelessWidget {
                   height: 4,
                 ),
                 Text(
-                  genres.reduce((value, element) => '$value / $element'),
+                  genres.fold('', (value, element) => '$value / $element'),
                   maxLines: 1,
                   style: const TextStyle(color: Color(0xFFFD577B)),
                 ),

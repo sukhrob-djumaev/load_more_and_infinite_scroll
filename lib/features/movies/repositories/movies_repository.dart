@@ -1,5 +1,6 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:dio/dio.dart';
+import 'package:load_more_and_infinite_scroll/features/movies/daos/movies_dao.dart';
 import 'package:tmdb_api/tmdb_api.dart';
 
 import 'package:load_more_and_infinite_scroll/shared/services/connection_service.dart';
@@ -16,9 +17,12 @@ abstract interface class IMoviesRepository {
 
 class MoviesRepository implements IMoviesRepository {
   final IConnectionService _connectionService;
+  final MoviesDao _moviesDao;
   MoviesRepository({
     required IConnectionService connectionService,
-  }) : _connectionService = connectionService;
+    required MoviesDao moviesDao,
+  })  : _connectionService = connectionService,
+        _moviesDao = moviesDao;
 
   late final tmbd = TMDB(
     ApiKeys(const String.fromEnvironment('TMDB_API_KEY'), 'apiReadAccessTokenv4'),
@@ -31,21 +35,42 @@ class MoviesRepository implements IMoviesRepository {
   @override
   Future<List<Genre>?> fetchGenres() async {
     try {
-      return ((await tmbd.v3.genres.getMovieList())['genres'] as List).map((e) => Genre.fromJson(e)).toList();
-    } on NoInternetException {
-      return null;
+      final remoteGenres = ((await tmbd.v3.genres.getMovieList())['genres'] as List)
+          .map(
+            (e) => Genre.fromJson(e),
+          )
+          .toList();
+      _moviesDao.addGenres(remoteGenres);
+      return remoteGenres;
+    } on DioException catch (e) {
+      if (e.error is NoInternetException) {
+        final localGenres = await _moviesDao.getAllGenres();
+
+        return localGenres;
+      }
+      rethrow;
     } catch (e) {
       rethrow;
     }
   }
 
   @override
-  Future<MoviesList?> fetchMovies([int? page]) async {
+  Future<MoviesList> fetchMovies([int? page]) async {
     try {
-      return MoviesList.fromJson(
+      final remoteMoviesList = MoviesList.fromJson(
           await tmbd.v3.trending.getTrending(page: page ?? 1, mediaType: MediaType.movie) as Map<String, dynamic>);
-    } on NoInternetException {
-      return null;
+
+      _moviesDao.addMovies(
+        remoteMoviesList.results,
+      );
+      return remoteMoviesList;
+    } on DioException catch (e) {
+      if (e.error is NoInternetException) {
+        final localMovies = await _moviesDao.getAllMovies(page);
+
+        return localMovies;
+      }
+      rethrow;
     } catch (e) {
       rethrow;
     }
