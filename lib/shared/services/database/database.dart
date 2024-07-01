@@ -10,12 +10,11 @@ import 'package:sqlite3_flutter_libs/sqlite3_flutter_libs.dart';
 
 import '../../../features/movies/tables/genres_table.dart';
 import '../../../features/movies/tables/movies_table.dart';
-import '../../../features/movies/tables/movies_with_genres.dart';
 
 part 'database.g.dart';
 
 @DriftDatabase(
-  tables: [MoviesTable, GenresTable, MoviesWithGenresTable],
+  tables: [MoviesTable, GenresTable],
   daos: [MoviesDao],
 )
 class AppDatabase extends _$AppDatabase {

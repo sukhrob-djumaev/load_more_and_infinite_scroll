@@ -30,7 +30,7 @@ class MoviesBloc extends Bloc<MoviesEvent, MoviesState> {
     emit(state.copyWith(status: const LoadingStatus()));
     try {
       final genres = await _repository.fetchGenres();
-      final moviesList = await _repository.fetchMovies();
+      final moviesList = await _repository.fetchMovies(1);
       if (genres != null && moviesList != null) {
         emit(
           state.copyWith(

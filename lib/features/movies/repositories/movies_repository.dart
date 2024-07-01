@@ -12,7 +12,7 @@ import '../models/movies_list.dart';
 
 abstract interface class IMoviesRepository {
   Future<List<Genre>?> fetchGenres();
-  Future<MoviesList?> fetchMovies([int? page]);
+  Future<MoviesList?> fetchMovies(int page);
 }
 
 class MoviesRepository implements IMoviesRepository {
@@ -55,13 +55,14 @@ class MoviesRepository implements IMoviesRepository {
   }
 
   @override
-  Future<MoviesList> fetchMovies([int? page]) async {
+  Future<MoviesList> fetchMovies(int page) async {
     try {
       final remoteMoviesList = MoviesList.fromJson(
-          await tmbd.v3.trending.getTrending(page: page ?? 1, mediaType: MediaType.movie) as Map<String, dynamic>);
+          await tmbd.v3.trending.getTrending(page: page, mediaType: MediaType.movie) as Map<String, dynamic>);
 
       _moviesDao.addMovies(
         remoteMoviesList.results,
+        page,
       );
       return remoteMoviesList;
     } on DioException catch (e) {

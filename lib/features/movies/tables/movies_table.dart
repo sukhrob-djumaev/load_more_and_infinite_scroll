@@ -9,7 +9,9 @@ class MoviesTable extends Table {
 
   RealColumn get voteAverage => real()();
 
-  // TextColumn get genreIds => text()();
+  TextColumn get genreIds => text()();
+
+  IntColumn get position => integer()();
 
   @override
   Set<Column<Object>>? get primaryKey => {id};

@@ -6,6 +6,4 @@ part of 'movies_dao.dart';
 mixin _$MoviesDaoMixin on DatabaseAccessor<AppDatabase> {
   $MoviesTableTable get moviesTable => attachedDatabase.moviesTable;
   $GenresTableTable get genresTable => attachedDatabase.genresTable;
-  $MoviesWithGenresTableTable get moviesWithGenresTable =>
-      attachedDatabase.moviesWithGenresTable;
 }

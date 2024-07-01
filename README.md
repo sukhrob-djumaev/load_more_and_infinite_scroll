@@ -1,201 +1,174 @@
-# Managing Large Data in Flutter with Infinite Scroll
+# Advanced Caching with Drift in Flutter
 
-In today's digital age, mobile applications are a critical component of business strategy. Users expect fast, responsive, and smooth experiences, regardless of the amount of data being handled. Studies show that 53% of mobile users will abandon a site or app that takes longer than 3 seconds to load . Furthermore, applications that offer seamless data loading can see up to a 20% increase in content consumption . Efficient data management is not just a technical concern but a business imperative.
+In larger Flutter projects, managing sophisticated caching mechanisms becomes crucial for optimizing performance and user experience. The drift package, built on SQLite, offers powerful database features that enable developers to implement comprehensive caching strategies effectively. By integrating Drift, developers can seamlessly manage complex caching requirements, handle database migrations, and ensure data consistency across app sessions.
 
-Handling large data sets efficiently is crucial for maintaining user engagement and satisfaction. This is especially relevant for businesses that rely on real-time data, large inventories, or content-heavy platforms. For instance, e-commerce platforms, social media apps, and streaming services all benefit from optimized data handling to keep users engaged and prevent drop-offs.
-
-[https://youtube.com/shorts/dqTBnu-JO9M](https://youtube.com/shorts/dqTBnu-JO9M)
-
-## Why Infinite Scroll?
-
-Infinite scroll is a design pattern that loads content continuously as the user scrolls down the page, eliminating the need for pagination controls. This provides a smoother user experience, especially when dealing with large data sets.
-
-## Implementation Overview
-
-We'll use the `tmdb_api` package to fetch movie data and `flutter_bloc` for state management.
-
-First, you need to get an API key from [TMDB](https://www.themoviedb.org/). Follow the instructions on their website to obtain your key. 
-
-Here's the implementation of the `MoviesBloc`:
+[https://www.youtube.com/shorts/Fzfi21YJLj8](https://www.youtube.com/shorts/Fzfi21YJLj8)
 
 ```dart
-class MoviesBloc extends Bloc<MoviesEvent, MoviesState> {
-  final IMoviesRepository _repository;
+class MoviesRepository implements IMoviesRepository {
+  final IConnectionService _connectionService;
+  final MoviesDao _moviesDao;
+  MoviesRepository({
+    required IConnectionService connectionService,
+    required MoviesDao moviesDao,
+  })  : _connectionService = connectionService,
+        _moviesDao = moviesDao;
 
-  MoviesBloc({
-    required IMoviesRepository repository,
-  })  : _repository = repository,
-        super(const MoviesState()) {
-    on<_Started>(_onStarted);
-    on<_LoadMoreRequested>(
-      _onLoadMoreRequested,
-      transformer: throttleDroppable(const Duration(milliseconds: 100)),
-    );
-  }
-
-  void _onStarted(_Started event, Emitter<MoviesState> emit) async {
-    emit(state.copyWith(status: const LoadingStatus()));
-    try {
-      final genres = await _repository.fetchGenres();
-      final moviesList = await _repository.fetchMovies();
-      emit(
-        state.copyWith(
-          genres: genres,
-          movies: moviesList.results,
-          totalPages: moviesList.totalPages,
-          page: moviesList.page,
-        ),
-      );
-    } catch (e) {
-      emit(state.copyWith(status: const ErrorStatus('Something went wrong')));
-    } finally {
-      emit(state.copyWith(status: const StateStatus()));
-    }
-  }
-
-  void _onLoadMoreRequested(_LoadMoreRequested event, Emitter<MoviesState> emit) async {
-    if (state.hasReachedMax) return;
-
-    emit(state.copyWith(status: const LoadingStatus()));
-    try {
-      final moviesList = await _repository.fetchMovies(state.page + 1);
-      emit(
-        state.copyWith(
-          movies: List.of(state.movies)..addAll(moviesList.results),
-          totalPages: moviesList.totalPages,
-          page: moviesList.page,
-        ),
-      );
-    } catch (e) {
-      emit(state.copyWith(status: const ErrorStatus('Something went wrong')));
-    } finally {
-      emit(state.copyWith(status: const StateStatus()));
-    }
-  }
-}
-```
-
-In this code, we define a `MoviesBloc` that fetches movie data and handles loading more data when requested. 
-
-### Using Bloc Transformers for Efficient Data Fetching
-
-To efficiently manage API calls and ensure smooth scrolling, we employed a custom Bloc transformer. Transformers in Bloc help control the flow of events, allowing us to implement patterns like throttling and debouncing.
-
-### Why Use Transformers?
-
-When implementing infinite scroll, there's a risk of making too many API calls, especially if the user scrolls rapidly. This can lead to performance issues and hitting rate limits on the API. By using a transformer, we can control the frequency of these calls, ensuring our application remains responsive and within API limits.
-
-### Throttling with `throttleDroppable`
-
-In our `MoviesBloc`, we used a custom transformer called `throttleDroppable`. This transformer combines throttling with the droppable pattern. Throttling ensures that events are processed at most once in a specified duration, while the droppable pattern ensures that only the latest event is processed, dropping any intermediate events.
-
-Here’s the implementation:
-
-```dart
-EventTransformer<E> throttleDroppable<E>(Duration duration) {
-  return (events, mapper) {
-    return droppable<E>().call(events.throttle(duration), mapper);
-  };
-}
-```
-
-### Infinite Scroll Widget
-
-Next, let's create a widget to display the movie list and handle infinite scrolling:
-
-```dart
-class MoviesListWidget extends StatelessWidget {
-  final List<Movie> list;
-  final List<Genre> genres;
-  final bool hasReachedMax;
-
-  const MoviesListWidget({
-    Key? key,
-    required this.list,
-    required this.genres,
-    required this.hasReachedMax,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return InfiniteListPagination(
-      onMaxScrollExtent: () {
-        context.read<MoviesBloc>().add(_LoadMoreRequested());
-      },
-      builder: (context, scrollController) => ListView.separated(
-        controller: scrollController,
-        itemCount: hasReachedMax ? list.length : list.length + 1,
-        itemBuilder: (context, index) => index >= list.length
-            ? const Center(child: CircularProgressIndicator())
-            : MovieItem(
-                item: list[index],
-                genres: genres.where((genre) => list[index].genreIds.contains(genre.id)).map((e) => e.name).toList(),
-              ),
-        separatorBuilder: (context, index) => const Divider(height: 24),
+  late final tmbd = TMDB(
+    ApiKeys(const String.fromEnvironment('TMDB_API_KEY'), 'apiReadAccessTokenv4'),
+    interceptors: Interceptors()
+      ..add(
+        DioConnectionInterceptor(connectionService: _connectionService),
       ),
-    );
+  );
+
+  @override
+  Future<List<Genre>?> fetchGenres() async {
+    try {
+      final remoteGenres = ((await tmbd.v3.genres.getMovieList())['genres'] as List)
+          .map(
+            (e) => Genre.fromJson(e),
+          )
+          .toList();
+      _moviesDao.addGenres(remoteGenres);
+      return remoteGenres;
+    } on DioException catch (e) {
+      if (e.error is NoInternetException) {
+        final localGenres = await _moviesDao.getAllGenres();
+
+        return localGenres;
+      }
+      rethrow;
+    } catch (e) {
+      rethrow;
+    }
   }
 
+  @override
+  Future<MoviesList> fetchMovies(int page) async {
+    try {
+      final remoteMoviesList = MoviesList.fromJson(
+          await tmbd.v3.trending.getTrending(page: page, mediaType: MediaType.movie) as Map<String, dynamic>);
+
+      _moviesDao.addMovies(
+        remoteMoviesList.results,
+        page,
+      );
+      return remoteMoviesList;
+    } on DioException catch (e) {
+      if (e.error is NoInternetException) {
+        final localMovies = await _moviesDao.getAllMovies(page);
+
+        return localMovies;
+      }
+      rethrow;
+    } catch (e) {
+      rethrow;
+    }
+  }
+}
 ```
+When integrating Drift, we move the caching responsibility to the repository. The repository saves successful responses to the local database and retrieves cached data when the app is offline. This approach centralizes data management and ensures that the app's data layer handles both network and local data seamlessly.
 
-To display our movie list, we use the `ListView.separated` widget in Flutter. This widget is particularly beneficial for handling large data sets due to its efficient memory management. `ListView.separated` only keeps the widgets visible on the screen in memory, along with a few that are just outside the viewport. This significantly reduces the memory footprint compared to keeping all list items in memory. 
-
-Items are built lazily, meaning that the widget only builds the items that are visible or near the visible area, which improves performance and responsiveness.
-
-To handle infinite scrolling, we use a custom widget called `InfiniteListPagination`. This widget is responsible for detecting when the user has scrolled to the end of the list and then triggering a function to load more data.
-
-The widget listens to the scroll events of the `ScrollController` and determines when the user has reached the maximum scroll extent. It uses a configurable threshold to determine when to start loading more data, providing flexibility in how early the loading starts.
+The database configuration involves defining tables and data access objects (DAOs). Drift generates the necessary functionality, simplifying database interactions. The repository uses DAOs to save and retrieve data, ensuring that all data operations are encapsulated within the repository.
 
 ```dart
-class InfiniteListPagination extends StatefulWidget {
-  final Function(BuildContext context, ScrollController scrollController) builder;
-  final Function()? onMaxScrollExtent;
-  final double maxScrollExtentThreshold;
+class MoviesTable extends Table {
+  IntColumn get id => integer()();
 
-  const InfiniteListPagination({
-    Key? key,
-    required this.builder,
-    this.onMaxScrollExtent,
-    this.maxScrollExtentThreshold = 0.9,
-  }) : super(key: key);
+  TextColumn get title => text()();
+
+  TextColumn get posterPath => text()();
+
+  RealColumn get voteAverage => real()();
+
+  TextColumn get genreIds => text()();
+
+  IntColumn get position => integer()();
 
   @override
-  State<InfiniteListPagination> createState() => _InfiniteListPaginationState();
+  Set<Column<Object>>? get primaryKey => {id};
 }
+```
 
-class _InfiniteListPaginationState extends State<InfiniteListPagination> {
-  late final ScrollController scrollController;
+```dart
+class GenresTable extends Table {
+  IntColumn get id => integer()();
+
+  TextColumn get name => text()();
 
   @override
-  void initState() {
-    super.initState();
-    scrollController = ScrollController();
-    scrollController.addListener(() {
-      if ((scrollController.position.maxScrollExtent * widget.maxScrollExtentThreshold) <
-          scrollController.position.pixels) {
-        widget.onMaxScrollExtent?.call();
-      }
+  Set<Column<Object>>? get primaryKey => {id};
+}
+```
+
+```dart
+@DriftAccessor(tables: [MoviesTable, GenresTable])
+class MoviesDao extends DatabaseAccessor<AppDatabase> with _$MoviesDaoMixin {
+  MoviesDao(super.db);
+
+  Future<List<Genre>> getAllGenres() async {
+    return (await select(genresTable).get())
+        .map(
+          (e) => e.toModel(),
+        )
+        .toList();
+  }
+
+  Future<MoviesList> getAllMovies([int? page]) async {
+    final offset = page != null && page > 1 ? 20 * page - 20 : null;
+    final totalElementsLength = (await select(moviesTable).get()).length;
+    if (totalElementsLength <= 0) {
+      return const MoviesList(page: 1, results: [], totalPages: 1);
+    }
+    final totalPages = (totalElementsLength / 20).ceil();
+    final results = (await (select(moviesTable)
+              ..orderBy([(t) => OrderingTerm(expression: t.position)])
+              ..limit(20, offset: offset))
+            .get())
+        .map(
+          (e) => e.toModel(),
+        )
+        .toList();
+
+    return MoviesList(page: page ?? 1, results: results, totalPages: totalPages);
+  }
+
+  Future<void> addGenres(List<Genre> genres) async {
+    await transaction(() async {
+      await delete(genresTable).go();
+
+      await batch(
+        (batch) {
+          batch.insertAll(
+            genresTable,
+            genres.map((e) => e.toDBData()),
+          );
+        },
+      );
     });
   }
 
-  @override
-  void dispose() {
-    scrollController.dispose();
-    super.dispose();
-  }
+  Future<void> addMovies(List<Movie> movies, int page) async {
+    await transaction(() async {
+      if (page == 1) {
+        await delete(moviesTable).go();
+      }
 
-  @override
-  Widget build(BuildContext context) {
-    return widget.builder(
-      context,
-      scrollController,
-    );
+      await batch(
+        (batch) {
+          batch.insertAll(
+            moviesTable,
+            movies.mapIndexed((i, e) => e.toDBData(int.parse('$page$i'))),
+          );
+        },
+      );
+    });
   }
 }
 ```
 
-## Conclusion
+All required functionality to store and retrieve cached data is organized in MoviesDao. Since the API's method of ordering movies is unknown, an extra field for position is included to maintain the order. Additionally, pagination functionality is implemented to align with the API's pagination.
 
-Handling large data sets efficiently in Flutter can significantly enhance the user experience. By implementing infinite scroll with `flutter_bloc` and a custom `InfiniteListPagination` widget, you can ensure smooth and responsive data loading. Leveraging transformers in Bloc for controlled event processing and using `ListView.separated` for efficient memory management further optimizes performance.
 
-This approach can be adapted to various data sources and use cases, making it a valuable technique for any Flutter developer. By following these strategies, you can build applications that handle large amounts of data gracefully, providing a seamless and enjoyable experience for your users.
+Integrating Drift in Flutter applications empowers developers to implement advanced caching strategies efficiently. By leveraging SQLite and Drift's capabilities, developers can manage complex data caching requirements, ensure offline availability, and maintain data integrity across app sessions. This approach not only optimizes performance but also enhances the overall user experience by seamlessly handling network and local data interactions.

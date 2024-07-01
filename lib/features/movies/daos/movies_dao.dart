@@ -1,8 +1,8 @@
 import 'package:drift/drift.dart';
+import 'package:collection/collection.dart';
 import 'package:load_more_and_infinite_scroll/features/movies/models/movie.dart';
 import 'package:load_more_and_infinite_scroll/features/movies/tables/genres_table.dart';
 import 'package:load_more_and_infinite_scroll/features/movies/tables/movies_table.dart';
-import 'package:load_more_and_infinite_scroll/features/movies/tables/movies_with_genres.dart';
 
 import '../../../shared/services/database/database.dart';
 import '../models/genre.dart';
@@ -10,44 +10,35 @@ import '../models/movies_list.dart';
 
 part 'movies_dao.g.dart';
 
-@DriftAccessor(tables: [MoviesTable, GenresTable, MoviesWithGenresTable])
+@DriftAccessor(tables: [MoviesTable, GenresTable])
 class MoviesDao extends DatabaseAccessor<AppDatabase> with _$MoviesDaoMixin {
   MoviesDao(super.db);
 
   Future<List<Genre>> getAllGenres() async {
     return (await select(genresTable).get())
         .map(
-          (e) => Genre(
-            id: e.id,
-            name: e.name,
-          ),
+          (e) => e.toModel(),
         )
         .toList();
   }
 
   Future<MoviesList> getAllMovies([int? page]) async {
-    final genresList = moviesWithGenresTable.genreId.groupConcat();
-    final query = (select(moviesTable).join(
-      [
-        innerJoin(
-          moviesWithGenresTable,
-          moviesWithGenresTable.movieId.equalsExp(moviesTable.id),
-        ),
-      ],
-    )
-      ..addColumns([
-        genresList,
-      ])
-      ..groupBy([
-        moviesWithGenresTable.movieId,
-      ]));
-    final results = await query.map(
-      (e) {
-        return e.readTable(moviesTable).toModel(e.read(genresList));
-      },
-    ).get();
+    final offset = page != null && page > 1 ? 20 * page - 20 : null;
+    final totalElementsLength = (await select(moviesTable).get()).length;
+    if (totalElementsLength <= 0) {
+      return const MoviesList(page: 1, results: [], totalPages: 1);
+    }
+    final totalPages = (totalElementsLength / 20).ceil();
+    final results = (await (select(moviesTable)
+              ..orderBy([(t) => OrderingTerm(expression: t.position)])
+              ..limit(20, offset: offset))
+            .get())
+        .map(
+          (e) => e.toModel(),
+        )
+        .toList();
 
-    return MoviesList(page: 1, results: results, totalPages: 2);
+    return MoviesList(page: page ?? 1, results: results, totalPages: totalPages);
   }
 
   Future<void> addGenres(List<Genre> genres) async {
@@ -58,48 +49,24 @@ class MoviesDao extends DatabaseAccessor<AppDatabase> with _$MoviesDaoMixin {
         (batch) {
           batch.insertAll(
             genresTable,
-            genres.map(
-              (e) => e.toEntity(),
-            ),
+            genres.map((e) => e.toDBData()),
           );
         },
       );
     });
   }
 
-  Future<void> addMovies(List<Movie> movies) async {
+  Future<void> addMovies(List<Movie> movies, int page) async {
     await transaction(() async {
-      await delete(moviesTable).go();
+      if (page == 1) {
+        await delete(moviesTable).go();
+      }
 
       await batch(
         (batch) {
           batch.insertAll(
             moviesTable,
-            movies.map(
-              (e) => e.toEntity(),
-            ),
-          );
-        },
-      );
-
-      await batch(
-        (batch) {
-          batch.insertAll(
-            moviesWithGenresTable,
-            movies.expand(
-              (element) {
-                return element.genreIds.map(
-                  (e) {
-                    return (element.id, e);
-                  },
-                );
-              },
-            ).map(
-              (e) => MoviesWithGenresTableCompanion.insert(
-                movieId: e.$1,
-                genreId: e.$2,
-              ),
-            ),
+            movies.mapIndexed((i, e) => e.toDBData(int.parse('$page$i'))),
           );
         },
       );
@@ -107,28 +74,35 @@ class MoviesDao extends DatabaseAccessor<AppDatabase> with _$MoviesDaoMixin {
   }
 }
 
+extension GenresTableDataX on GenresTableData {
+  Genre toModel() {
+    return Genre(
+      id: id,
+      name: name,
+    );
+  }
+}
+
 extension MoviesTableDataX on MoviesTableData {
-  Movie toModel(String? genreIds) {
+  Movie toModel() {
     return Movie(
       id: id,
       title: title,
       posterPath: posterPath,
       voteAverage: voteAverage,
-      genreIds: genreIds == null
-          ? []
-          : genreIds
-              .split(',')
-              .map(
-                (e) => int.tryParse(e),
-              )
-              .nonNulls
-              .toList(),
+      genreIds: genreIds
+          .split(',')
+          .map(
+            (e) => int.tryParse(e),
+          )
+          .nonNulls
+          .toList(),
     );
   }
 }
 
 extension GenreX on Genre {
-  Insertable<GenresTableData> toEntity() {
+  Insertable<GenresTableData> toDBData() {
     return GenresTableCompanion.insert(
       id: Value(id),
       name: name,
@@ -137,12 +111,17 @@ extension GenreX on Genre {
 }
 
 extension MovieX on Movie {
-  Insertable<MoviesTableData> toEntity() {
+  Insertable<MoviesTableData> toDBData(int position) {
     return MoviesTableCompanion.insert(
       id: Value(id),
       title: title,
       posterPath: posterPath,
       voteAverage: voteAverage,
+      position: position,
+      genreIds: genreIds.fold(
+        '',
+        (previousValue, element) => '$previousValue,$element',
+      ),
     );
   }
 }
