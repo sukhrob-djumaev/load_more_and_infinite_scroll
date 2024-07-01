@@ -168,7 +168,7 @@ class MoviesDao extends DatabaseAccessor<AppDatabase> with _$MoviesDaoMixin {
 }
 ```
 
-All required functionality to store and retrieve cached data is organized in MoviesDao. Since the API's method of ordering movies is unknown, an extra field for position is included to maintain the order. Additionally, pagination functionality is implemented to align with the API's pagination.
+All required functionality to store and retrieve cached data is organized in `MoviesDao`. Since the API's method of ordering movies is unknown, an extra field for position is included to maintain the order. Additionally, pagination functionality is implemented to align with the API's pagination.
 
 
 Integrating Drift in Flutter applications empowers developers to implement advanced caching strategies efficiently. By leveraging SQLite and Drift's capabilities, developers can manage complex data caching requirements, ensure offline availability, and maintain data integrity across app sessions. This approach not only optimizes performance but also enhances the overall user experience by seamlessly handling network and local data interactions.
